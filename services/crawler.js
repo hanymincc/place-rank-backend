@@ -48,14 +48,22 @@ function extractBlogInfo(blogUrl) {
  */
 function extractProductId(productUrl) {
   if (!productUrl) return null;
-  // https://smartstore.naver.com/xxx/products/12345
-  // https://search.shopping.naver.com/product/12345
-  // https://shopping.naver.com/...nvMid=12345...
   
+  // 숫자만 입력된 경우 그대로 반환
+  if (/^\d+$/.test(productUrl.trim())) {
+    return productUrl.trim();
+  }
+  
+  // https://smartstore.naver.com/xxx/products/12345
   let m = productUrl.match(/products?\/(\d+)/i);
   if (m) return m[1];
   
+  // https://shopping.naver.com/...nvMid=12345...
   m = productUrl.match(/nvMid=(\d+)/i);
+  if (m) return m[1];
+  
+  // https://brand.naver.com/...n_mall_pid=12345...
+  m = productUrl.match(/n_mall_pid=(\d+)/i);
   if (m) return m[1];
   
   return null;
@@ -71,6 +79,7 @@ class NaverCrawler {
       console.log('🚀 [Crawler] 브라우저 시작...');
       this.browser = await puppeteer.launch({
         headless: 'new',
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
