@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const naverAPI = require('../services/naver-api');
+const crawler = require('../services/crawler');
 const { PointsService, POINT_COSTS } = require('../services/points');
 const rankHistoryService = require('../services/rank-history');
 
-// 쇼핑 순위 체크 (네이버 API 사용)
+// 쇼핑 순위 체크 (Puppeteer 크롤러 사용)
 router.post('/check-rank', async (req, res) => {
   try {
     const { keyword, productUrl, userId, shopId, keywordId } = req.body;
@@ -28,8 +28,8 @@ router.post('/check-rank', async (req, res) => {
       }
     }
 
-    // 네이버 API로 쇼핑 순위 체크
-    const result = await naverAPI.checkShoppingRank(keyword, productUrl);
+    // Puppeteer 크롤러로 쇼핑 순위 체크
+    const result = await crawler.checkShoppingRank(keyword, productUrl);
 
     // 포인트 차감
     if (userId && result.success) {
@@ -103,8 +103,8 @@ router.post('/check-rank-once', async (req, res) => {
       }
     }
 
-    // 네이버 API로 쇼핑 순위 체크
-    const result = await naverAPI.checkShoppingRank(keyword, productUrl);
+    // Puppeteer 크롤러로 쇼핑 순위 체크
+    const result = await crawler.checkShoppingRank(keyword, productUrl);
 
     // 포인트 차감
     if (userId && result.success) {
