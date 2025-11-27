@@ -15,16 +15,10 @@ const iPhone = {
 };
 
 /**
- * Place ID 추출 (모바일 + PC 링크 모두 지원 + 숫자만 입력도 지원)
+ * Place ID 추출 (모바일 + PC 링크 모두 지원)
  */
 function extractPlaceId(placeUrl) {
   if (!placeUrl) return null;
-  
-  // 숫자만 입력된 경우 그대로 반환
-  if (/^\d+$/.test(placeUrl.trim())) {
-    return placeUrl.trim();
-  }
-  
   const m = placeUrl.match(/\/(?:restaurant|place|entry\/place)\/(\d+)/i);
   return m ? m[1] : null;
 }
@@ -77,7 +71,6 @@ class NaverCrawler {
       console.log('🚀 [Crawler] 브라우저 시작...');
       this.browser = await puppeteer.launch({
         headless: 'new',
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -290,35 +283,11 @@ class NaverCrawler {
           await page.waitForTimeout(2000);
         }
 
-        // 디버그: 페이지 상태 확인
-        const debugInfo = await page.evaluate(() => {
-          const allLi = document.querySelectorAll('li');
-          const uezos = document.querySelectorAll('li.UEzoS');
-          const dataCid = document.querySelectorAll('li[data-cid]');
-          const bodyText = document.body?.innerText?.slice(0, 200) || '';
-          return {
-            totalLi: allLi.length,
-            uezosCount: uezos.length,
-            dataCidCount: dataCid.length,
-            bodyPreview: bodyText
-          };
-        });
-        
-        if (scrollCount === 0) {
-          console.log(`🔎 [디버그] li 총: ${debugInfo.totalLi}개, li.UEzoS: ${debugInfo.uezosCount}개, li[data-cid]: ${debugInfo.dataCidCount}개`);
-          console.log(`🔎 [디버그] 페이지 미리보기: ${debugInfo.bodyPreview.slice(0, 100)}...`);
-        }
-
         const items = await page.evaluate(() => {
           const arr = [];
           
           // li.UEzoS 가 업체 아이템
-          let listItems = document.querySelectorAll('li.UEzoS');
-          
-          // 백업 셀렉터
-          if (listItems.length === 0) {
-            listItems = document.querySelectorAll('li[data-cid]');
-          }
+          const listItems = document.querySelectorAll('li.UEzoS');
           
           listItems.forEach((li, index) => {
             try {
